@@ -1,0 +1,21 @@
+# dependencies
+node_modules/
+.expo/
+.expo-shared/
+
+# build outputs
+dist/
+build/
+android/.gradle/
+android/app/build/
+ios/Pods/
+
+# caches & logs
+*.log
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# env & OS noise
+.env
+.DS_Store
