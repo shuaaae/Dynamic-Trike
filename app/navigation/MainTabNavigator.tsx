@@ -1,12 +1,15 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { HomeScreen } from '../screens/HomeScreen';
+import { DriverDashboard } from '../screens/DriverDashboard';
 import { ActivityScreen } from '../screens/ActivityScreen';
-import { MessagesScreen } from '../screens/MessagesScreen';
 import { AccountScreen } from '../screens/AccountScreen';
+import { RootTabParamList } from '../types/navigation';
+import { useAuth } from '../contexts/AuthContext';
 
-const Tab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator<RootTabParamList>();
 
 // Custom tab bar component to match your design
 const CustomTabBar = ({ state, descriptors, navigation }: any) => {
@@ -37,15 +40,15 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
         const getIcon = () => {
           switch (route.name) {
             case 'Home':
-              return '🏠';
+              return 'home';
+            case 'DriverDashboard':
+              return 'car';
             case 'Activity':
-              return '📄';
-            case 'Messages':
-              return '💬';
+              return 'time';
             case 'Account':
-              return '👤';
+              return 'person';
             default:
-              return '🏠';
+              return 'home';
           }
         };
 
@@ -57,28 +60,25 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
           >
             <View style={[
               styles.tabIconContainer,
-              isFocused && route.name !== 'Activity' && route.name !== 'Account' && styles.activeTabIconContainer
+              isFocused && styles.activeTabIconContainer
             ]}>
-              <Text style={[
-                styles.tabIcon,
-                isFocused && route.name !== 'Activity' && route.name !== 'Account' && styles.activeTabIcon
-              ]}>
-                {getIcon()}
-              </Text>
+              <Ionicons 
+                name={getIcon() as any}
+                size={20}
+                color={isFocused ? '#FFFFFF' : '#9CA3AF'}
+              />
               {route.name === 'Activity' && (
-                <View style={styles.clockIcon}>
-                  <Text style={styles.clockHand}>🕐</Text>
-                </View>
-              )}
-              {route.name === 'Messages' && (
-                <View style={styles.messageBadge}>
-                  <Text style={styles.badgeText}>1</Text>
+                <View style={[
+                  styles.clockIcon,
+                  isFocused && styles.activeClockIcon
+                ]}>
+                  <Ionicons name="time" size={6} color="#FFFFFF" />
                 </View>
               )}
             </View>
             <Text style={[
               styles.tabLabel,
-              isFocused && route.name !== 'Activity' && route.name !== 'Account' && styles.activeTabLabel
+              isFocused && styles.activeTabLabel
             ]}>
               {label}
             </Text>
@@ -90,6 +90,14 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
 };
 
 export const MainTabNavigator = () => {
+  const { user } = useAuth();
+  const isDriver = user?.role === 'driver';
+
+  // Debug logging
+  console.log('[MainTabNavigator] User role:', user?.role);
+  console.log('[MainTabNavigator] Is driver:', isDriver);
+  console.log('[MainTabNavigator] User email:', user?.email);
+
   return (
     <Tab.Navigator
       tabBar={(props) => <CustomTabBar {...props} />}
@@ -97,26 +105,45 @@ export const MainTabNavigator = () => {
         headerShown: false,
       }}
     >
-      <Tab.Screen 
-        name="Home" 
-        component={HomeScreen}
-        options={{ tabBarLabel: 'Home' }}
-      />
-      <Tab.Screen 
-        name="Activity" 
-        component={ActivityScreen}
-        options={{ tabBarLabel: 'Activity' }}
-      />
-      <Tab.Screen 
-        name="Messages" 
-        component={MessagesScreen}
-        options={{ tabBarLabel: 'Messages' }}
-      />
-      <Tab.Screen 
-        name="Account" 
-        component={AccountScreen}
-        options={{ tabBarLabel: 'Account' }}
-      />
+      {isDriver ? (
+        // Driver tabs
+        <>
+          <Tab.Screen 
+            name="DriverDashboard" 
+            component={DriverDashboard}
+            options={{ tabBarLabel: 'Drive' }}
+          />
+          <Tab.Screen 
+            name="Activity" 
+            component={ActivityScreen}
+            options={{ tabBarLabel: 'Activity' }}
+          />
+          <Tab.Screen 
+            name="Account" 
+            component={AccountScreen}
+            options={{ tabBarLabel: 'Account' }}
+          />
+        </>
+      ) : (
+        // Passenger tabs
+        <>
+          <Tab.Screen 
+            name="Home" 
+            component={HomeScreen}
+            options={{ tabBarLabel: 'Home' }}
+          />
+          <Tab.Screen 
+            name="Activity" 
+            component={ActivityScreen}
+            options={{ tabBarLabel: 'Activity' }}
+          />
+          <Tab.Screen 
+            name="Account" 
+            component={AccountScreen}
+            options={{ tabBarLabel: 'Account' }}
+          />
+        </>
+      )}
     </Tab.Navigator>
   );
 };
@@ -152,14 +179,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#58BC6B',
     borderRadius: 4,
   },
-  tabIcon: {
-    fontSize: 20,
-    color: '#9CA3AF',
-  },
-  activeTabIcon: {
-    color: '#FFFFFF',
-    fontSize: 18,
-  },
   tabLabel: {
     fontSize: 12,
     color: '#9CA3AF',
@@ -180,24 +199,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  clockHand: {
-    fontSize: 6,
-    color: '#FFFFFF',
-  },
-  messageBadge: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    backgroundColor: '#EF4444',
-    borderRadius: 6,
-    width: 12,
-    height: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  badgeText: {
-    color: 'white',
-    fontSize: 8,
-    fontWeight: 'bold',
+  activeClockIcon: {
+    backgroundColor: '#58BC6B',
   },
 });

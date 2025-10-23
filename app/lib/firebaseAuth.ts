@@ -55,6 +55,40 @@ export const initializeAuth = async (): Promise<AuthUser | null> => {
   const storedUser = await getUserFromStorage();
   if (storedUser) {
     console.log('[Storage] Found stored user data:', storedUser.email);
+    console.log('[Storage] Stored user role:', storedUser.role);
+  } else {
+    console.log('[Storage] No stored user data found');
+  }
+  
+  // Check if Firebase auth is already initialized
+  const currentUser = auth.currentUser;
+  if (currentUser) {
+    console.log('[Firebase] User already authenticated:', currentUser.email);
+    try {
+      // Get additional user data from Firestore
+      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+      const userData = userDoc.data();
+      
+      const authUser: AuthUser = {
+        id: currentUser.uid,
+        email: currentUser.email!,
+        name: userData?.name || currentUser.displayName || '',
+        username: userData?.username || currentUser.email!.split('@')[0],
+        role: userData?.role || 'passenger',
+        phone: userData?.phone || '',
+        avatar: userData?.avatar || currentUser.photoURL || '',
+        verified: currentUser.emailVerified
+      };
+      
+      // Save user data to AsyncStorage for backup
+      await saveUserToStorage(authUser);
+      
+      console.log('[Firebase] Auth restored for user:', authUser.email);
+      return authUser;
+    } catch (error) {
+      console.error('[Firebase] Error getting user data:', error);
+      return storedUser;
+    }
   }
   
   return new Promise((resolve) => {
@@ -108,15 +142,13 @@ export const initializeAuth = async (): Promise<AuthUser | null> => {
       } else {
         console.log('[Firebase] No authenticated user found');
         
-        // If we have stored user data but Firebase says no user, clear storage
-        if (storedUser) {
-          console.log('[Storage] Firebase says no user, but we have stored data - clearing storage');
-          await clearUserFromStorage();
-        }
+        // Don't clear storage during initialization - let the auth state listener handle it
+        // This prevents clearing valid stored data during app startup
+        console.log('[Firebase] Keeping stored user data during initialization');
         
         resolved = true;
         unsubscribe();
-        resolve(null);
+        resolve(storedUser); // Return stored user if available
       }
     });
     
@@ -128,7 +160,7 @@ export const initializeAuth = async (): Promise<AuthUser | null> => {
         unsubscribe();
         resolve(storedUser);
       }
-    }, 3000); // 3 second timeout
+    }, 2000); // Reduced timeout to 2 seconds
   });
 };
 
@@ -271,8 +303,9 @@ export const onAuthStateChange = (callback: (user: AuthUser | null) => void) => 
         callback(null);
       }
     } else {
-      // Clear AsyncStorage when user is logged out
-      await clearUserFromStorage();
+      // Don't clear AsyncStorage here - let the auth state listener handle it
+      // This prevents clearing stored data during app initialization
+      console.log('[Firebase] No user in auth state, but not clearing storage');
       callback(null);
     }
   });

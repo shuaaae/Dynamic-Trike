@@ -9,6 +9,12 @@ A React Native/Expo app with PocketBase backend for ride-sharing services.
 - Role-based access (Passenger, Driver, Admin)
 - Persistent authentication with AsyncStorage
 
+### Location Services
+- Real-time location tracking with GPS
+- Interactive map with user's current position
+- Location permissions handling
+- Map refresh functionality
+
 ### User Roles
 - **Passenger**: Request rides, track trips
 - **Driver**: Accept trips, manage profile, complete rides
@@ -32,7 +38,8 @@ app/
 ├── screens/
 │   ├── LoginScreen.tsx          # User login
 │   ├── RegisterScreen.tsx       # User registration
-│   └── HomeScreen.tsx           # Main dashboard
+│   ├── HomeScreen.tsx           # Main dashboard
+│   └── MapScreen.tsx            # Location tracking and map view
 ├── services/
 │   └── api.ts                   # API service functions
 ├── types/
@@ -122,6 +129,8 @@ npx expo start
 - `react-navigation` - Navigation
 - `pocketbase` - Backend client
 - `@react-native-async-storage/async-storage` - Local storage
+- `react-native-maps` - Interactive maps
+- `expo-location` - Location services and GPS
 
 ### Development
 - `typescript` - Type safety

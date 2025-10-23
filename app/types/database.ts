@@ -9,6 +9,7 @@ export interface User {
   avatar?: string;
   role: 'passenger' | 'driver' | 'admin';
   phone?: string;
+  driverVerificationStatus?: 'pending' | 'approved' | 'rejected';
   createdAt: string;
   updatedAt: string;
 }
@@ -18,8 +19,26 @@ export interface Driver {
   user: string; // User ID
   verified: boolean;
   vehicle_no?: string;
+  licenseImage?: string; // Base64 or URL of license image
+  licenseNumber?: string;
+  licenseExpiry?: string;
+  vehicleDetails?: VehicleDetails;
+  verificationStatus: 'pending' | 'approved' | 'rejected';
+  verificationNotes?: string;
+  submittedAt?: string;
+  reviewedAt?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface VehicleDetails {
+  make?: string;
+  model?: string;
+  year?: number;
+  color?: string;
+  plateNumber?: string;
+  engineNumber?: string;
+  chassisNumber?: string;
 }
 
 export interface Trip {

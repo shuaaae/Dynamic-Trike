@@ -17,6 +17,7 @@ import {
   Keyboard,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { RegisterCredentials } from '../types/database';
 
@@ -35,6 +36,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
     phone: '', // Keep for type compatibility but won't be used
   });
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const { register } = useAuth();
   const insets = useSafeAreaInsets();
   const { height: screenHeight } = Dimensions.get('window');
@@ -62,6 +65,19 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
 
     try {
       setLoading(true);
+      
+      // For drivers, navigate to verification flow first before completing registration
+      if (formData.role === 'driver') {
+        // Store the registration data temporarily and navigate to verification
+        navigation.navigate('LicenseCapture', { 
+          registrationData: formData,
+          isDriverRegistration: true 
+        });
+        setLoading(false);
+        return;
+      }
+      
+      // For passengers, complete registration immediately
       await register(formData);
       // Navigation will be handled by the auth state change
     } catch (error: any) {
@@ -79,7 +95,13 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
         {/* Top Green Section with Logo */}
         <View style={[styles.topSection, { height: screenHeight * 0.25 - insets.top }]}>
           {/* Back Button */}
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <TouchableOpacity style={styles.backButton} onPress={() => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.navigate('AuthOptions');
+            }
+          }}>
             <Text style={styles.backButtonText}>←</Text>
           </TouchableOpacity>
 
@@ -163,30 +185,59 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) =>
                     </Text>
                   </TouchableOpacity>
                 </View>
+                {formData.role === 'driver' && (
+                  <Text style={styles.driverNote}>
+                    Driver accounts require verification. You'll need to provide your driver's license and vehicle details.
+                  </Text>
+                )}
               </View>
 
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Password *</Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.password}
-                  onChangeText={(value) => handleInputChange('password', value)}
-                  placeholder="Create a password"
-                  secureTextEntry
-                  autoCapitalize="none"
-                />
+                <View style={styles.passwordInputContainer}>
+                  <TextInput
+                    style={styles.passwordInput}
+                    value={formData.password}
+                    onChangeText={(value) => handleInputChange('password', value)}
+                    placeholder="Create a password"
+                    secureTextEntry={!showPassword}
+                    autoCapitalize="none"
+                  />
+                  <TouchableOpacity
+                    style={styles.eyeButton}
+                    onPress={() => setShowPassword(!showPassword)}
+                  >
+                    <Ionicons 
+                      name={showPassword ? 'eye-off' : 'eye'} 
+                      size={20} 
+                      color="#6B7280" 
+                    />
+                  </TouchableOpacity>
+                </View>
               </View>
 
               <View style={styles.inputContainer}>
                 <Text style={styles.label}>Confirm Password *</Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.passwordConfirm}
-                  onChangeText={(value) => handleInputChange('passwordConfirm', value)}
-                  placeholder="Confirm your password"
-                  secureTextEntry
-                  autoCapitalize="none"
-                />
+                <View style={styles.passwordInputContainer}>
+                  <TextInput
+                    style={styles.passwordInput}
+                    value={formData.passwordConfirm}
+                    onChangeText={(value) => handleInputChange('passwordConfirm', value)}
+                    placeholder="Confirm your password"
+                    secureTextEntry={!showPasswordConfirm}
+                    autoCapitalize="none"
+                  />
+                  <TouchableOpacity
+                    style={styles.eyeButton}
+                    onPress={() => setShowPasswordConfirm(!showPasswordConfirm)}
+                  >
+                    <Ionicons 
+                      name={showPasswordConfirm ? 'eye-off' : 'eye'} 
+                      size={20} 
+                      color="#6B7280" 
+                    />
+                  </TouchableOpacity>
+                </View>
               </View>
 
               <TouchableOpacity
@@ -266,6 +317,8 @@ const styles = StyleSheet.create({
   bottomSection: {
     backgroundColor: 'white',
     position: 'relative',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
   },
   wavyBorder: {
     position: 'absolute',
@@ -274,8 +327,8 @@ const styles = StyleSheet.create({
     right: 0,
     height: 20,
     backgroundColor: 'white',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
   },
   formContainer: {
     flex: 1,
@@ -309,6 +362,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: '#F9FAFB',
   },
+  passwordInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 12,
+    backgroundColor: '#F9FAFB',
+  },
+  passwordInput: {
+    flex: 1,
+    padding: 16,
+    fontSize: 16,
+  },
+  eyeButton: {
+    padding: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   roleContainer: {
     flexDirection: 'row',
     gap: 12,
@@ -333,6 +404,13 @@ const styles = StyleSheet.create({
   },
   roleButtonTextActive: {
     color: 'white',
+  },
+  driverNote: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginTop: 8,
+    fontStyle: 'italic',
+    lineHeight: 20,
   },
   button: {
     backgroundColor: '#58BC6B',

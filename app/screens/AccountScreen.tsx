@@ -9,6 +9,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
+import { isDevMode } from '../lib/devAuth';
 
 interface MenuItem {
   id: string;
@@ -16,16 +17,17 @@ interface MenuItem {
   onPress: () => void;
 }
 
-export const AccountScreen: React.FC = () => {
-  const { user } = useAuth();
+interface AccountScreenProps {
+  navigation: any;
+}
+
+export const AccountScreen: React.FC<AccountScreenProps> = ({ navigation }) => {
+  const { user, logout } = useAuth();
 
   const handleRecoveryEmail = () => {
     console.log('Set up recovery email');
   };
 
-  const handlePaymentMethods = () => {
-    console.log('Payment Methods');
-  };
 
   const handleSavedPlaces = () => {
     console.log('Saved Places');
@@ -43,21 +45,37 @@ export const AccountScreen: React.FC = () => {
     console.log('Settings');
   };
 
+  const handleLogout = () => {
+    // Call the logout function from AuthContext
+    logout();
+  };
+
+  const handleDevSettings = () => {
+    navigation.navigate('DevSettings');
+  };
+
   const myAccountItems: MenuItem[] = [
-    { id: '1', title: 'Payment Methods', onPress: handlePaymentMethods },
-    { id: '2', title: 'Saved Places', onPress: handleSavedPlaces },
-    { id: '3', title: 'Emergency contacts', onPress: handleEmergencyContacts },
+    { id: '1', title: 'Saved Places', onPress: handleSavedPlaces },
+    { id: '2', title: 'Emergency contacts', onPress: handleEmergencyContacts },
   ];
 
   const generalItems: MenuItem[] = [
     { id: '1', title: 'Help Centre', onPress: handleHelpCentre },
     { id: '2', title: 'Settings', onPress: handleSettings },
+    ...(isDevMode() ? [{ id: 'dev', title: 'Development Settings', onPress: handleDevSettings }] : []),
+    { id: '3', title: 'Logout', onPress: handleLogout },
   ];
 
   const renderMenuItem = (item: MenuItem) => (
     <TouchableOpacity key={item.id} style={styles.menuItem} onPress={item.onPress}>
-      <Text style={styles.menuItemText}>{item.title}</Text>
-      <Text style={styles.chevron}>›</Text>
+      <Text style={[
+        styles.menuItemText,
+        item.title === 'Logout' && styles.logoutText
+      ]}>{item.title}</Text>
+      <Text style={[
+        styles.chevron,
+        item.title === 'Logout' && styles.logoutChevron
+      ]}>›</Text>
     </TouchableOpacity>
   );
 
@@ -237,5 +255,12 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: '#999',
     fontWeight: 'bold',
+  },
+  logoutText: {
+    color: '#FF4444',
+    fontWeight: '600',
+  },
+  logoutChevron: {
+    color: '#FF4444',
   },
 });

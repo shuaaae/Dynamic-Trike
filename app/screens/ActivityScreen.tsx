@@ -18,49 +18,23 @@ interface ActivityItem {
 }
 
 export const ActivityScreen: React.FC = () => {
-  // Sample activity data matching the image
-  const activities: ActivityItem[] = [
-    {
-      id: '1',
-      destination: 'Ride to Asilo de San Vicente de Paul',
-      date: '17 Aug 2025',
-      time: '06:27 AM',
-      price: 'P68.00',
-    },
-    {
-      id: '2',
-      destination: 'Ride to 381-C Dayao St, Brgy. 133, Tondo',
-      date: '16 Aug 2025',
-      time: '11:23 PM',
-      price: 'P63.00',
-    },
-    {
-      id: '3',
-      destination: 'Ride to Blk 3F Lot 10 Phase 3, Barangay 14, Caloocan City',
-      date: '15 Aug 2025',
-      time: '12:08 PM',
-      price: 'P63.00',
-    },
-    {
-      id: '4',
-      destination: 'Ride to 381-C Dayao St, Brgy. 133, Tondo',
-      date: '14 Aug 2025',
-      time: '09:45 PM',
-      price: 'P63.00',
-    },
-    {
-      id: '5',
-      destination: 'Ride to Blk 3F Lot 10 Phase 3, Barangay 14, Caloocan City',
-      date: '13 Aug 2025',
-      time: '05:55 PM',
-      price: 'P63.00',
-    },
-  ];
+  // Empty activities array - will be populated from real data
+  const activities: ActivityItem[] = [];
 
   const handleRebook = (activity: ActivityItem) => {
     // Handle rebook functionality
     console.log('Rebooking:', activity.destination);
   };
+
+  const renderEmptyState = () => (
+    <View style={styles.emptyState}>
+      <Text style={styles.emptyStateIcon}>📱</Text>
+      <Text style={styles.emptyStateTitle}>No activities yet</Text>
+      <Text style={styles.emptyStateSubtitle}>
+        Your ride history will appear here once you start booking rides.
+      </Text>
+    </View>
+  );
 
   const renderActivityItem = (activity: ActivityItem) => (
     <View key={activity.id} style={styles.activityItem}>
@@ -104,7 +78,11 @@ export const ActivityScreen: React.FC = () => {
       >
         <Text style={styles.sectionTitle}>Recent</Text>
         
-        {activities.map(renderActivityItem)}
+        {activities.length > 0 ? (
+          activities.map(renderActivityItem)
+        ) : (
+          renderEmptyState()
+        )}
       </ScrollView>
 
     </SafeAreaView>
@@ -205,5 +183,29 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 40,
+  },
+  emptyStateIcon: {
+    fontSize: 64,
+    marginBottom: 16,
+  },
+  emptyStateTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptyStateSubtitle: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });

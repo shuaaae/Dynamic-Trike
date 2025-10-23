@@ -49,7 +49,7 @@ export const OnboardingScreen3: React.FC<OnboardingScreen3Props> = ({ onNext, on
       {/* Navigation Button */}
       <View style={styles.navigationContainer}>
         <TouchableOpacity onPress={onNext} style={styles.nextButton}>
-          <Text style={styles.nextText}>Next</Text>
+          <Text style={styles.nextText}>Get Started</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
